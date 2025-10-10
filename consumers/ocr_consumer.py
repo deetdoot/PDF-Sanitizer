@@ -81,16 +81,14 @@ class OCRConsumer:
                 return
             result = ocr.predict(file_path)
 
-            output_dir = Path("output")
+            output_dir = Path("output") / str(job_id)
             output_dir.mkdir(exist_ok=True)
             base_name = Path(file_path).stem
             
             for idx, res in enumerate(result):
                 # Save image and JSON with job_id and file base name for uniqueness
-                img_output_path = output_dir / job_id / f"output_{idx}.jpg"
-                json_output_path = output_dir / job_id / f"output_{idx}.json"
-                res.save_to_img(str(img_output_path))
-                res.save_to_json(str(json_output_path))
+                res.save_to_img(str(output_dir))
+                res.save_to_json(str(output_dir))
             
             logger.info(f"OCR processing completed for job: {job_id}")
             

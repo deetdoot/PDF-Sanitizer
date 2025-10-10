@@ -58,7 +58,7 @@ async def upload_pdf_endpoint(file: UploadFile = File(...)):
     # Prepare your message
     pdf_job = {
         'job_id': job_id,
-        'file_path': '/uploads/invoice_2025.pdf'
+        'file_path': f'/uploads/{job_id}.pdf'
     }
 
     # 4️⃣ Publish it to RabbitMQ

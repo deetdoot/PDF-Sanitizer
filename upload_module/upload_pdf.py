@@ -5,6 +5,8 @@ import io
 from typing import List, Optional
 import logging
 import os
+import pika
+import json
 
 
 def validate_pdf_file(file_content: bytes) -> bool:
@@ -38,9 +40,6 @@ async def upload_pdf(file: UploadFile = File(...), job_id: str = ""):
         
         # Create file-like object
         pdf_file = io.BytesIO(file_content)
-        
-        # Save the file to a directory (e.g., ./uploads/)
-        # Generate a unique UUID for the file name
 
         upload_dir = "./uploads"
         upload_path = f"{upload_dir}/{job_id}.pdf"
@@ -50,7 +49,6 @@ async def upload_pdf(file: UploadFile = File(...), job_id: str = ""):
 
         with open(upload_path, "wb") as f:
             f.write(pdf_file.getbuffer())
-
 
         return JSONResponse(
             content={

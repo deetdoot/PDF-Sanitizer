@@ -1,0 +1,118 @@
+import pika
+import json
+import logging
+import time
+from typing import Dict, Any
+from pathlib import Path
+from paddleocr import PPStructureV3
+from paddleocr import PaddleOCR
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class OCRConsumer:
+    def __init__(self, rabbitmq_host='localhost'):
+        self.rabbitmq_host = rabbitmq_host
+        self.connection = None
+        self.channel = None
+        
+    def connect(self):
+        """Establish connection to RabbitMQ"""
+        try:
+            self.connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host=self.rabbitmq_host)
+            )
+            self.channel = self.connection.channel()
+            
+            # Declare OCR queue
+            self.channel.queue_declare(queue='ocr', durable=True)
+            
+            logger.info("OCR Consumer connected to RabbitMQ successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to connect to RabbitMQ: {e}")
+            return False
+    
+    def process_ocr_message(self, ch, method, properties, body):
+        """Process OCR messages"""
+        try:
+            # Parse the message
+            message = json.loads(body)
+            job_id = message.get('job_id')
+            file_path = message.get('file_path')
+            
+            logger.info(f"Starting OCR processing for job: {job_id}")
+            logger.info(f"File path: {file_path}")
+            
+
+
+            ocr = PaddleOCR(
+                use_doc_orientation_classify=False, # Disables document orientation classification model via this parameter
+                use_doc_unwarping=False, # Disables text image rectification model via this parameter
+                use_textline_orientation=False, # Disables text line orientation classification model via this parameter
+            )
+            ocr = PaddleOCR(lang="en") # Uses English model by specifying language parameter
+            ocr = PaddleOCR(ocr_version="PP-OCRv4") # Uses other PP-OCR versions via version parameter
+            ocr = PaddleOCR(device="gpu") # Enables GPU acceleration for model inference via device parameter
+            ocr = PaddleOCR(
+                text_detection_model_name="PP-OCRv5_mobile_det",
+                text_recognition_model_name="PP-OCRv5_mobile_rec",
+                use_doc_orientation_classify=False,
+                use_doc_unwarping=False,
+                use_textline_orientation=False,
+            ) # Switch to PP-OCRv5_mobile models
+            result = ocr.predict(file_path)
+            for res in result:  
+                res.print()  
+                res.save_to_img("output")  
+                res.save_to_json("output")
+
+            # - Extract text using OCR
+            # - Save results to database
+            # - Send notification
+
+            
+            logger.info(f"OCR processing completed for job: {job_id}")
+            
+            # Acknowledge the message
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            
+        except Exception as e:
+            logger.error(f"Error processing OCR message: {e}")
+            print("Error:", e)
+            # Reject and requeue the message
+            ch.basic_nack(delivery_tag=method.delivery_tag)
+    
+    def start_consuming(self):
+        """Start consuming messages from OCR queue"""
+        if not self.connect():
+            logger.error("Cannot start consuming - connection failed")
+            return
+        
+        try:
+            # Set up consumer
+            self.channel.basic_qos(prefetch_count=1)
+            self.channel.basic_consume(
+                queue='ocr',
+                on_message_callback=self.process_ocr_message
+            )
+            
+            logger.info("Starting OCR consumer...")
+            logger.info("To exit press CTRL+C")
+            
+            # Start consuming
+            self.channel.start_consuming()
+            
+        except KeyboardInterrupt:
+            logger.info("Stopping OCR consumer...")
+            self.channel.stop_consuming()
+            self.connection.close()
+        except Exception as e:
+            logger.error(f"Error in OCR consumer: {e}")
+            self.connection.close()
+
+if __name__ == "__main__":
+    consumer = OCRConsumer()
+    consumer.start_consuming()

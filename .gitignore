@@ -1,0 +1,8 @@
+# Ignore Python virtual environment
+.venv/
+
+# Ignore everything inside consumers/output folder
+consumers/output/
+
+# Ignore everything inside uploads folder
+uploads/

@@ -81,15 +81,16 @@ class OCRConsumer:
                 return
             result = ocr.predict(file_path)
 
-            for res in result:  
-                res.print()  
-                res.save_to_img("output")  
-                res.save_to_json("output")
-
-            # - Extract text using OCR
-            # - Save results to database
-            # - Send notification
-
+            output_dir = Path("output")
+            output_dir.mkdir(exist_ok=True)
+            base_name = Path(file_path).stem
+            
+            for idx, res in enumerate(result):
+                # Save image and JSON with job_id and file base name for uniqueness
+                img_output_path = output_dir / job_id / f"output_{idx}.jpg"
+                json_output_path = output_dir / job_id / f"output_{idx}.json"
+                res.save_to_img(str(img_output_path))
+                res.save_to_json(str(json_output_path))
             
             logger.info(f"OCR processing completed for job: {job_id}")
             

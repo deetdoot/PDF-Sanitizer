@@ -4,7 +4,7 @@ from pydantic import BaseModel, HttpUrl
 import io
 from typing import List, Optional
 import logging
-from upload_module.upload_pdf import upload_pdf
+from upload_module.upload_pdf import upload_file
 import pika, json
 import uvicorn
 import uuid
@@ -46,8 +46,8 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "message": "PDF Reader API is running"}
 
-@app.post("/upload-pdf/")
-async def upload_pdf_endpoint(file: UploadFile = File(...)):
+@app.post("/upload-file/")
+async def upload_file_endpoint(file: UploadFile = File(...)):
     """
     Upload a PDF file and extract its text content
     
@@ -56,12 +56,13 @@ async def upload_pdf_endpoint(file: UploadFile = File(...)):
 
     job_id = str(uuid.uuid4())
     # Prepare your message
+    file_ext = file.filename.split('.')[-1]
     pdf_job = {
         'job_id': job_id,
-        'file_path': f'/uploads/{job_id}.pdf'
+        'file_path': f'./uploads/{job_id}.{file_ext}'
     }
 
-    # 4️⃣ Publish it to RabbitMQ
+    # Publish it to RabbitMQ
     channel.basic_publish(
         exchange='',
         routing_key='file_upload',
@@ -75,7 +76,7 @@ async def upload_pdf_endpoint(file: UploadFile = File(...)):
     #connection.close()
 
 
-    return await upload_pdf(file, job_id)
+    return await upload_file(file, job_id)
 
 
 if __name__ == "__main__":

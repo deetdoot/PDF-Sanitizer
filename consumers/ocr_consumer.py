@@ -42,7 +42,16 @@ class OCRConsumer:
             message = json.loads(body)
             job_id = message.get('job_id')
             file_path = message.get('file_path')
-            
+            # Convert relative path to absolute path from project root
+            print(file_path)
+            # Resolve file_path to absolute path relative to project root if necessary
+            file_path = Path(file_path)
+            if not file_path.is_absolute():
+                project_root = Path(__file__).resolve().parent.parent
+                file_path = (project_root / file_path).resolve()
+            file_path = str(file_path)
+
+
             logger.info(f"Starting OCR processing for job: {job_id}")
             logger.info(f"File path: {file_path}")
             
@@ -55,7 +64,7 @@ class OCRConsumer:
             )
             ocr = PaddleOCR(lang="en") # Uses English model by specifying language parameter
             ocr = PaddleOCR(ocr_version="PP-OCRv4") # Uses other PP-OCR versions via version parameter
-            ocr = PaddleOCR(device="gpu") # Enables GPU acceleration for model inference via device parameter
+            ocr = PaddleOCR(device="cpu") # Enables GPU acceleration for model inference via device parameter
             ocr = PaddleOCR(
                 text_detection_model_name="PP-OCRv5_mobile_det",
                 text_recognition_model_name="PP-OCRv5_mobile_rec",
@@ -63,7 +72,15 @@ class OCRConsumer:
                 use_doc_unwarping=False,
                 use_textline_orientation=False,
             ) # Switch to PP-OCRv5_mobile models
+
+            if Path(file_path).is_file():
+                logger.info(f"File exists: {file_path}")
+            else:
+                logger.error(f"File does not exist: {file_path}")
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+                return
             result = ocr.predict(file_path)
+
             for res in result:  
                 res.print()  
                 res.save_to_img("output")  
@@ -82,8 +99,9 @@ class OCRConsumer:
         except Exception as e:
             logger.error(f"Error processing OCR message: {e}")
             print("Error:", e)
-            # Reject and requeue the message
-            ch.basic_nack(delivery_tag=method.delivery_tag)
+            # Acknowledge and discard the message (single attempt only)
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            logger.info(f"Message for job {message.get('job_id', 'unknown')} discarded after failed attempt")
     
     def start_consuming(self):
         """Start consuming messages from OCR queue"""

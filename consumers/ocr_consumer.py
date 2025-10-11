@@ -29,6 +29,9 @@ class OCRConsumer:
             # Declare OCR queue
             self.channel.queue_declare(queue='ocr', durable=True)
             
+            # Declare LLM Engine queue
+            self.channel.queue_declare(queue='llm_engine', durable=True)
+            
             logger.info("OCR Consumer connected to RabbitMQ successfully")
             return True
         except Exception as e:
@@ -91,6 +94,25 @@ class OCRConsumer:
                 res.save_to_json(str(output_dir))
             
             logger.info(f"OCR processing completed for job: {job_id}")
+            
+            # Send message to LLM Engine queue for PII detection
+            ocr_result_file = output_dir / f"{job_id}_res.json"
+            llm_message = {
+                'job_id': job_id,
+                'ocr_result_path': str(ocr_result_file),
+                'output_folder': str(output_dir)
+            }
+            
+            self.channel.basic_publish(
+                exchange='',
+                routing_key='llm_engine',
+                body=json.dumps(llm_message),
+                properties=pika.BasicProperties(
+                    delivery_mode=2,  # Make message persistent
+                )
+            )
+            
+            logger.info(f"Sent message to LLM Engine queue for job: {job_id}")
             
             # Acknowledge the message
             ch.basic_ack(delivery_tag=method.delivery_tag)

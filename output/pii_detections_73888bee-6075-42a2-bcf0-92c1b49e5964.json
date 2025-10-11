@@ -1,0 +1,479 @@
+{
+  "job_id": "73888bee-6075-42a2-bcf0-92c1b49e5964",
+  "source_file": "/Users/emtiazahamed/Desktop/753-Final Project/consumers/output/73888bee-6075-42a2-bcf0-92c1b49e5964/73888bee-6075-42a2-bcf0-92c1b49e5964_res.json",
+  "total_text_blocks": 60,
+  "total_pii_detections": 21,
+  "categories_found": [
+    "LOCATION",
+    "PHONE",
+    "DATE",
+    "OTHER",
+    "EMAIL",
+    "NAME",
+    "ADDRESS"
+  ],
+  "detections": [
+    {
+      "block_index": 1,
+      "original_text": "emtiaz.ahamed79@gmail.com|725-336-0466 |5292 S Maryland Pkwy, Las Vegas, NV |linkedin.com/in/emon | github.com/deetdoo",
+      "category": "EMAIL",
+      "detected_text": "emtiaz.ahamed79@gmail.com",
+      "start_char": 13,
+      "end_char": 48,
+      "text_length": 118,
+      "original_bbox": [
+        98,
+        177,
+        1515,
+        212
+      ],
+      "pii_bbox": [
+        254,
+        177,
+        674,
+        212
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 1,
+      "original_text": "emtiaz.ahamed79@gmail.com|725-336-0466 |5292 S Maryland Pkwy, Las Vegas, NV |linkedin.com/in/emon | github.com/deetdoo",
+      "category": "PHONE",
+      "detected_text": "725-336-0466",
+      "start_char": 25,
+      "end_char": 51,
+      "text_length": 118,
+      "original_bbox": [
+        98,
+        177,
+        1515,
+        212
+      ],
+      "pii_bbox": [
+        398,
+        177,
+        710,
+        212
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 2,
+      "original_text": "WORK EXPERIENCE",
+      "category": "NAME",
+      "detected_text": "actual_name_found",
+      "start_char": 0,
+      "end_char": 12,
+      "text_length": 15,
+      "original_bbox": [
+        101,
+        255,
+        433,
+        282
+      ],
+      "pii_bbox": [
+        101,
+        255,
+        366,
+        282
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 3,
+      "original_text": "Wit Sales LLC",
+      "category": "NAME",
+      "detected_text": "Wit Sales LLC",
+      "start_char": 0,
+      "end_char": 12,
+      "text_length": 13,
+      "original_bbox": [
+        99,
+        306,
+        303,
+        334
+      ],
+      "pii_bbox": [
+        99,
+        306,
+        287,
+        334
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 6,
+      "original_text": "Bridgewater, New Jersey",
+      "category": "LOCATION",
+      "detected_text": "Bridgewater, New Jersey",
+      "start_char": 0,
+      "end_char": 13,
+      "text_length": 23,
+      "original_bbox": [
+        1299,
+        343,
+        1568,
+        380
+      ],
+      "pii_bbox": [
+        1299,
+        343,
+        1451,
+        380
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 9,
+      "original_text": "Around 1M+ documents processed per month, first automation of its kind in the global logistics/defence",
+      "category": "OTHER",
+      "detected_text": "Around 1M+ documents processed per month, first automation of its kind in the global logistics/defence",
+      "start_char": 0,
+      "end_char": 37,
+      "text_length": 102,
+      "original_bbox": [
+        145,
+        459,
+        1599,
+        497
+      ],
+      "pii_bbox": [
+        145,
+        459,
+        672,
+        497
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 14,
+      "original_text": "Toronto, Canada",
+      "category": "LOCATION",
+      "detected_text": "Toronto, Canada",
+      "start_char": 0,
+      "end_char": 15,
+      "text_length": 15,
+      "original_bbox": [
+        1390,
+        580,
+        1585,
+        613
+      ],
+      "pii_bbox": [
+        1390,
+        580,
+        1585,
+        613
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 18,
+      "original_text": "Implemented document automation solution for world's largest logistics company; expanding to Global",
+      "category": "LOCATION",
+      "detected_text": "world's largest logistics company",
+      "start_char": 0,
+      "end_char": 14,
+      "text_length": 99,
+      "original_bbox": [
+        144,
+        738,
+        1602,
+        781
+      ],
+      "pii_bbox": [
+        144,
+        738,
+        350,
+        781
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 23,
+      "original_text": "Jan 2022 – Jan, 2023",
+      "category": "DATE",
+      "detected_text": "Jan 2022 – Jan, 2023",
+      "start_char": 0,
+      "end_char": 18,
+      "text_length": 20,
+      "original_bbox": [
+        1295,
+        930,
+        1575,
+        966
+      ],
+      "pii_bbox": [
+        1295,
+        930,
+        1547,
+        966
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 37,
+      "original_text": "Footylight Pte Ltd(Now fconnect.io) is a Video on demand service provider operating in Ad-tech",
+      "category": "NAME",
+      "detected_text": "Footylight Pte Ltd",
+      "start_char": 0,
+      "end_char": 14,
+      "text_length": 94,
+      "original_bbox": [
+        143,
+        1327,
+        1406,
+        1360
+      ],
+      "pii_bbox": [
+        143,
+        1327,
+        331,
+        1360
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 37,
+      "original_text": "Footylight Pte Ltd(Now fconnect.io) is a Video on demand service provider operating in Ad-tech",
+      "category": "EMAIL",
+      "detected_text": ".Now fconnect.io",
+      "start_char": 37,
+      "end_char": 56,
+      "text_length": 94,
+      "original_bbox": [
+        143,
+        1327,
+        1406,
+        1360
+      ],
+      "pii_bbox": [
+        640,
+        1327,
+        895,
+        1360
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 45,
+      "original_text": "Masters of Science in Management Information Systems",
+      "category": "OTHER",
+      "detected_text": "Masters of Science in Management Information Systems",
+      "start_char": 0,
+      "end_char": 32,
+      "text_length": 52,
+      "original_bbox": [
+        97,
+        1648,
+        719,
+        1681
+      ],
+      "pii_bbox": [
+        97,
+        1648,
+        479,
+        1681
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 46,
+      "original_text": "Las Vegas, NV",
+      "category": "LOCATION",
+      "detected_text": "Las Vegas, NV",
+      "start_char": 0,
+      "end_char": 14,
+      "text_length": 13,
+      "original_bbox": [
+        1388,
+        1646,
+        1586,
+        1680
+      ],
+      "pii_bbox": [
+        1388,
+        1646,
+        1601,
+        1680
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 47,
+      "original_text": "GPA: 3.95/4.0 Leadership: Graduate Teaching Assistant, Bangladesh Student Association, Rebel Venture Fund",
+      "category": "LOCATION",
+      "detected_text": "Bangladesh",
+      "start_char": 6,
+      "end_char": 17,
+      "text_length": 105,
+      "original_bbox": [
+        141,
+        1682,
+        1590,
+        1723
+      ],
+      "pii_bbox": [
+        223,
+        1682,
+        375,
+        1723
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 49,
+      "original_text": "Shahjalal University of Science and Technology, Sylhet",
+      "category": "LOCATION",
+      "detected_text": "Shahjalal University of Science and Technology, Sylhet",
+      "start_char": 0,
+      "end_char": 35,
+      "text_length": 54,
+      "original_bbox": [
+        120,
+        1693,
+        151,
+        1709
+      ],
+      "pii_bbox": [
+        120,
+        1693,
+        140,
+        1709
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 52,
+      "original_text": "Sylbet, Bangladesb",
+      "category": "NAME",
+      "detected_text": "Sylbet, Bangladesb",
+      "start_char": 0,
+      "end_char": 12,
+      "text_length": 18,
+      "original_bbox": [
+        98,
+        1760,
+        518,
+        1803
+      ],
+      "pii_bbox": [
+        98,
+        1760,
+        378,
+        1803
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 53,
+      "original_text": "GPA: 3.37/4.0 Leadership: Graduate Development Network, Feni Student Association, Franchisee Manager,",
+      "category": "EMAIL",
+      "detected_text": "Graduate Development Network",
+      "start_char": 28,
+      "end_char": 51,
+      "text_length": 101,
+      "original_bbox": [
+        1372,
+        1765,
+        1586,
+        1799
+      ],
+      "pii_bbox": [
+        1431,
+        1765,
+        1480,
+        1799
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 53,
+      "original_text": "GPA: 3.37/4.0 Leadership: Graduate Development Network, Feni Student Association, Franchisee Manager,",
+      "category": "ADDRESS",
+      "detected_text": "Feni Student Association",
+      "start_char": 47,
+      "end_char": 69,
+      "text_length": 101,
+      "original_bbox": [
+        1372,
+        1765,
+        1586,
+        1799
+      ],
+      "pii_bbox": [
+        1471,
+        1765,
+        1518,
+        1799
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 53,
+      "original_text": "GPA: 3.37/4.0 Leadership: Graduate Development Network, Feni Student Association, Franchisee Manager,",
+      "category": "NAME",
+      "detected_text": "Franchisee Manager",
+      "start_char": 40,
+      "end_char": 58,
+      "text_length": 101,
+      "original_bbox": [
+        1372,
+        1765,
+        1586,
+        1799
+      ],
+      "pii_bbox": [
+        1456,
+        1765,
+        1494,
+        1799
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 58,
+      "original_text": "Awards: Winner of Sunhacks Hackathon Arizona State Uni, Category: Amazon Best Sustainability Hack",
+      "category": "LOCATION",
+      "detected_text": "Arizona State Uni",
+      "start_char": 16,
+      "end_char": 45,
+      "text_length": 97,
+      "original_bbox": [
+        149,
+        2001,
+        596,
+        2031
+      ],
+      "pii_bbox": [
+        222,
+        2001,
+        356,
+        2031
+      ],
+      "confidence_score": null
+    },
+    {
+      "block_index": 58,
+      "original_text": "Awards: Winner of Sunhacks Hackathon Arizona State Uni, Category: Amazon Best Sustainability Hack",
+      "category": "NAME",
+      "detected_text": "Sunhacks Hackathon",
+      "start_char": 25,
+      "end_char": 47,
+      "text_length": 97,
+      "original_bbox": [
+        149,
+        2001,
+        596,
+        2031
+      ],
+      "pii_bbox": [
+        264,
+        2001,
+        365,
+        2031
+      ],
+      "confidence_score": null
+    }
+  ]
+}

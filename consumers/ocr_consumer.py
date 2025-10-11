@@ -100,7 +100,8 @@ class OCRConsumer:
             llm_message = {
                 'job_id': job_id,
                 'ocr_result_path': str(ocr_result_file),
-                'output_folder': str(output_dir)
+                'output_folder': str(output_dir),
+                'original_file_path': file_path  # ✅ Pass original file path
             }
             
             self.channel.basic_publish(

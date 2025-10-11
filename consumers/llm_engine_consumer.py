@@ -65,10 +65,12 @@ class LLMEngineConsumer:
             job_id = message.get('job_id')
             ocr_result_path = message.get('ocr_result_path')
             output_folder = message.get('output_folder')
+            original_file_path = message.get('original_file_path')  # ✅ Get from message
             
             logger.info(f"Starting PII detection for job: {job_id}")
             logger.info(f"OCR result path: {ocr_result_path}")
             logger.info(f"Output folder: {output_folder}")
+            logger.info(f"Original file path: {original_file_path}")  # ✅ Log the passed path
             
             # Verify the OCR result file exists
             if not Path(ocr_result_path).exists():
@@ -86,38 +88,21 @@ class LLMEngineConsumer:
                 logger.info(f"PII detection completed successfully for job: {job_id}")
                 logger.info(f"Results saved to: {result_file}")
                 
-                # Send message to Redactor queue for redaction processing
-                # Find the original file in uploads folder
-                project_root = Path(__file__).parent.parent
-                uploads_dir = project_root / "uploads"
-                
-                logger.info(f"Looking for original file in: {uploads_dir}")
-                logger.info(f"Searching for pattern: {job_id}.*")
-                
-                # Look for the original file with the job_id (exclude redacted files)
-                original_file = None
-                matching_files = list(uploads_dir.glob(f"{job_id}.*"))
-                logger.info(f"Found matching files: {matching_files}")
-                
-                for file_path in matching_files:
-                    # Skip redacted files
-                    if "_redacted" not in file_path.name:
-                        original_file = str(file_path)
-                        logger.info(f"Selected original file: {original_file}")
-                        break
-                
-                if original_file:
+                # Use the original file path passed from OCR consumer
+                if original_file_path and Path(original_file_path).exists():
+                    logger.info(f"✅ Using original file path from OCR message: {original_file_path}")
+                    
                     redactor_message = {
                         'job_id': job_id,
                         'pii_detections_path': result_file,
-                        'original_file_path': original_file,
+                        'original_file_path': original_file_path,  # ✅ Use passed path
                         'output_folder': output_folder
                     }
                     
                     logger.info(f"Preparing message for Redactor queue:")
                     logger.info(f"  Job ID: {job_id}")
                     logger.info(f"  PII detections: {result_file}")
-                    logger.info(f"  Original file: {original_file}")
+                    logger.info(f"  Original file: {original_file_path}")
                     logger.info(f"  Output folder: {output_folder}")
                     
                     self.channel.basic_publish(
@@ -130,12 +115,53 @@ class LLMEngineConsumer:
                     )
                     
                     logger.info(f"✅ Successfully sent message to Redactor queue for job: {job_id}")
-                    logger.info(f"Original file: {original_file}")
+                    
+                elif original_file_path:
+                    logger.error(f"❌ Original file path from OCR message doesn't exist: {original_file_path}")
+                    
+                    # 🔄 Fallback: Try to find file in uploads folder (legacy behavior)
+                    logger.info("🔄 Falling back to file discovery in uploads folder...")
+                    project_root = Path(__file__).parent.parent
+                    uploads_dir = project_root / "uploads"
+                    
+                    logger.info(f"Looking for original file in: {uploads_dir}")
+                    logger.info(f"Searching for pattern: {job_id}.*")
+                    
+                    # Look for the original file with the job_id (exclude redacted files)
+                    fallback_file = None
+                    matching_files = list(uploads_dir.glob(f"{job_id}.*"))
+                    logger.info(f"Found matching files: {matching_files}")
+                    
+                    for file_path in matching_files:
+                        # Skip redacted files
+                        if "_redacted" not in file_path.name:
+                            fallback_file = str(file_path)
+                            logger.info(f"Selected fallback file: {fallback_file}")
+                            break
+                    
+                    if fallback_file:
+                        redactor_message = {
+                            'job_id': job_id,
+                            'pii_detections_path': result_file,
+                            'original_file_path': fallback_file,
+                            'output_folder': output_folder
+                        }
+                        
+                        self.channel.basic_publish(
+                            exchange='',
+                            routing_key='redactor',
+                            body=json.dumps(redactor_message),
+                            properties=pika.BasicProperties(
+                                delivery_mode=2,  # Make message persistent
+                            )
+                        )
+                        
+                        logger.info(f"✅ Successfully sent message to Redactor queue using fallback file: {fallback_file}")
+                    else:
+                        logger.error(f"❌ No fallback file found in uploads folder for job: {job_id}")
+                        
                 else:
-                    logger.error(f"❌ Original file not found in uploads folder for job: {job_id}")
-                    logger.error(f"   Searched in: {uploads_dir}")
-                    logger.error(f"   Pattern: {job_id}.*")
-                    logger.error(f"   Available files: {list(uploads_dir.glob('*'))}")
+                    logger.error(f"❌ No original file path provided in OCR message for job: {job_id}")
                     
             else:
                 logger.error(f"PII detection failed for job: {job_id}")

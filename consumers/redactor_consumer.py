@@ -78,6 +78,8 @@ class RedactorConsumer:
             # Verify the original file exists
             if not Path(original_file_path).exists():
                 logger.error(f"Original file not found: {original_file_path}")
+                logger.error(f"This could be a timing issue - file may not be uploaded yet")
+                logger.error(f"Consider adding retry logic or ensuring file upload completes before OCR")
                 ch.basic_ack(delivery_tag=method.delivery_tag)
                 return
             

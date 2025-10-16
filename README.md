@@ -24,6 +24,15 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Example Input
+<img width="500" height="750" alt="a83e7c11-3e95-4856-ac29-e3d723f883ed" src="https://github.com/user-attachments/assets/a1c29c44-6cb8-4843-b7f6-94e299a189c4" />
+
+
+
+## Output
+
+<img width="500" height="750" alt="a83e7c11-3e95-4856-ac29-e3d723f883ed_redacted" src="https://github.com/user-attachments/assets/3b166625-8a57-45e6-8bad-3f0d3e6118a8" />
+
 ## Running the Application
 
 Start the FastAPI server:

@@ -95,6 +95,7 @@ class LLMEngineConsumer:
                 
                 # Run PII detection
                 result_file = detect_pii_from_ocr(
+                    job_id=job_id,
                     json_file_path=ocr_result_path,
                     output_folder_path=str(output_folder)
                 )

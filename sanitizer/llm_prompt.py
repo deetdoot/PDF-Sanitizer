@@ -3,7 +3,7 @@ import requests
 import json
 from pathlib import Path
 
-def detect_pii_from_ocr(json_file_path: str, output_folder_path: str, model: str = "llava:7b"):
+def detect_pii_from_ocr(job_id: str, json_file_path: str, output_folder_path: str, model: str = "llava:7b"):
     """
     Main function to detect PII from OCR JSON file
     
@@ -176,8 +176,10 @@ CRITICAL: The examples above are just formatting guides. Analyze the actual text
                 continue
 
     # Save all detections to JSON file
-    job_id = Path(json_file_path).stem.split('_')[0]  # Extract job ID from filename
-    output_filename = f"pii_detections_{job_id}.json"
+    job_id = job_id  # Extract job ID from filename
+    # Get the file name (last part of the path)
+    filename = os.path.basename(json_file_path)
+    output_filename = f"pii_detections_{filename}"
     output_filepath = output_dir / output_filename
 
     # Create summary information
@@ -195,10 +197,10 @@ CRITICAL: The examples above are just formatting guides. Analyze the actual text
         with open(output_filepath, 'w', encoding='utf-8') as f:
             json.dump(summary_data, f, indent=2, ensure_ascii=False)
         
-        print(f"\n=== SUMMARY ===")
-        print(f"Total PII detections: {len(all_detections)}")
-        print(f"Categories found: {summary_data['categories_found']}")
-        print(f"Results saved to: {output_filepath}")
+        # print(f"\n=== SUMMARY ===")
+        # print(f"Total PII detections: {len(all_detections)}")
+        # print(f"Categories found: {summary_data['categories_found']}")
+        # print(f"Results saved to: {output_filepath}")
         
         return str(output_filepath)
         

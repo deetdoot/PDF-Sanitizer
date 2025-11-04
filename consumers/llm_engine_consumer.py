@@ -60,33 +60,58 @@ class LLMEngineConsumer:
     def process_llm_message(self, ch, method, properties, body):
         """Process LLM Engine messages for PII detection"""
         try:
+
             # Parse the message
             message = json.loads(body)
             job_id = message.get('job_id')
-            ocr_result_path = message.get('ocr_result_path')
-            output_folder = message.get('output_folder')
+            output_folder_str = message.get('output_folder')
             original_file_path = message.get('original_file_path')  # ✅ Get from message
-            
+
+            # Convert output_folder to Path object
+            output_folder = Path(output_folder_str) if output_folder_str else None
+
+            # Find all files that end with _res.json and count them
+            res_files = list(output_folder.rglob("*_res.json")) if output_folder and output_folder.exists() else []
+            res_count = len(res_files)
+            logger.info(f"Found {res_count} file(s) ending with _res.json in {output_folder}")
             logger.info(f"Starting PII detection for job: {job_id}")
-            logger.info(f"OCR result path: {ocr_result_path}")
             logger.info(f"Output folder: {output_folder}")
             logger.info(f"Original file path: {original_file_path}")  # ✅ Log the passed path
             
-            # Verify the OCR result file exists
-            if not Path(ocr_result_path).exists():
-                logger.error(f"OCR result file not found: {ocr_result_path}")
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-                return
+            # Process all OCR result files first
+            pii_detection_results = []
+            all_processing_successful = True
             
-            # Run PII detection
-            result_file = detect_pii_from_ocr(
-                json_file_path=ocr_result_path,
-                output_folder_path=output_folder
-            )
+            for ocr_result_path in res_files:
+                ocr_result_path = str(ocr_result_path)
+                print(ocr_result_path)
+                logger.info(f"Processing OCR result file: {ocr_result_path}")
+
+                # Verify the OCR result file exists
+                if not Path(ocr_result_path).exists():
+                    logger.error(f"OCR result file not found: {ocr_result_path}")
+                    all_processing_successful = False
+                    break
+                
+                # Run PII detection
+                result_file = detect_pii_from_ocr(
+                    json_file_path=ocr_result_path,
+                    output_folder_path=str(output_folder)
+                )
+                
+                if result_file:
+                    logger.info(f"PII detection completed successfully for OCR file: {ocr_result_path}")
+                    logger.info(f"Results saved to: {result_file}")
+                    pii_detection_results.append(result_file)
+                else:
+                    logger.error(f"PII detection failed for OCR file: {ocr_result_path}")
+                    all_processing_successful = False
+                    break
             
-            if result_file:
-                logger.info(f"PII detection completed successfully for job: {job_id}")
-                logger.info(f"Results saved to: {result_file}")
+            # Only publish message to redactor queue if all files were processed successfully
+            if all_processing_successful and pii_detection_results:
+                logger.info(f"All PII detection completed successfully for job: {job_id}")
+                logger.info(f"Processed {len(pii_detection_results)} files: {pii_detection_results}")
                 
                 # Use the original file path passed from OCR consumer
                 if original_file_path and Path(original_file_path).exists():
@@ -94,14 +119,16 @@ class LLMEngineConsumer:
                     
                     redactor_message = {
                         'job_id': job_id,
-                        'pii_detections_path': result_file,
+                        'pii_detections_path': pii_detection_results[0],  # Use first detection file as primary
+                        'all_pii_detections': pii_detection_results,  # Include all detection files
                         'original_file_path': original_file_path,  # ✅ Use passed path
-                        'output_folder': output_folder
+                        'output_folder': str(output_folder)
                     }
                     
                     logger.info(f"Preparing message for Redactor queue:")
                     logger.info(f"  Job ID: {job_id}")
-                    logger.info(f"  PII detections: {result_file}")
+                    logger.info(f"  Primary PII detections: {pii_detection_results[0]}")
+                    logger.info(f"  All PII detections: {pii_detection_results}")
                     logger.info(f"  Original file: {original_file_path}")
                     logger.info(f"  Output folder: {output_folder}")
                     
@@ -142,9 +169,10 @@ class LLMEngineConsumer:
                     if fallback_file:
                         redactor_message = {
                             'job_id': job_id,
-                            'pii_detections_path': result_file,
+                            'pii_detections_path': pii_detection_results[0],
+                            'all_pii_detections': pii_detection_results,
                             'original_file_path': fallback_file,
-                            'output_folder': output_folder
+                            'output_folder': str(output_folder)
                         }
                         
                         self.channel.basic_publish(
@@ -162,19 +190,25 @@ class LLMEngineConsumer:
                         
                 else:
                     logger.error(f"❌ No original file path provided in OCR message for job: {job_id}")
-                    
             else:
-                logger.error(f"PII detection failed for job: {job_id}")
+                if not all_processing_successful:
+                    logger.error(f"❌ PII detection failed for some files in job: {job_id}")
+                else:
+                    logger.error(f"❌ No PII detection results found for job: {job_id}")
             
             # Acknowledge the message
             ch.basic_ack(delivery_tag=method.delivery_tag)
             
         except Exception as e:
+            import traceback
             logger.error(f"Error processing LLM message: {e}")
             # Acknowledge and discard the message (single attempt only)
             ch.basic_ack(delivery_tag=method.delivery_tag)
             logger.info(f"Message for job {message.get('job_id', 'unknown')} discarded after failed attempt")
-    
+            print(e)
+            print(traceback.format_exc())
+   
+   
     def start_consuming(self):
         """Start consuming messages from LLM Engine queue"""
         if not self.connect():

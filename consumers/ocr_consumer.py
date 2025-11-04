@@ -29,6 +29,9 @@ class OCRConsumer:
             # Declare OCR queue
             self.channel.queue_declare(queue='ocr', durable=True)
             
+            # Declare LLM Engine queue
+            self.channel.queue_declare(queue='llm_engine', durable=True)
+            
             logger.info("OCR Consumer connected to RabbitMQ successfully")
             return True
         except Exception as e:
@@ -81,17 +84,36 @@ class OCRConsumer:
                 return
             result = ocr.predict(file_path)
 
-            for res in result:  
-                res.print()  
-                res.save_to_img("output")  
-                res.save_to_json("output")
-
-            # - Extract text using OCR
-            # - Save results to database
-            # - Send notification
-
+            output_dir = Path("output") / str(job_id)
+            output_dir.mkdir(exist_ok=True)
+            base_name = Path(file_path).stem
+            
+            for idx, res in enumerate(result):
+                # Save image and JSON with job_id and file base name for uniqueness
+                res.save_to_img(str(output_dir))
+                res.save_to_json(str(output_dir))
             
             logger.info(f"OCR processing completed for job: {job_id}")
+            
+            # Send message to LLM Engine queue for PII detection
+            ocr_result_file = output_dir / f"{job_id}_res.json"
+            llm_message = {
+                'job_id': job_id,
+                'ocr_result_path': str(ocr_result_file),
+                'output_folder': str(output_dir),
+                'original_file_path': file_path  # ✅ Pass original file path
+            }
+            
+            self.channel.basic_publish(
+                exchange='',
+                routing_key='llm_engine',
+                body=json.dumps(llm_message),
+                properties=pika.BasicProperties(
+                    delivery_mode=2,  # Make message persistent
+                )
+            )
+            
+            logger.info(f"Sent message to LLM Engine queue for job: {job_id}")
             
             # Acknowledge the message
             ch.basic_ack(delivery_tag=method.delivery_tag)

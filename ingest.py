@@ -35,7 +35,7 @@ async def root():
         "message": "PDF Reader API",
         "version": "1.0.0",
         "endpoints": {
-            "upload": "/upload-pdf/",
+            "upload": "/upload-file/",
             "url": "/read-pdf-from-url/",
             "health": "/health/"
         }

@@ -16,27 +16,36 @@ def detect_pii_from_ocr(job_id: str, json_file_path: str, output_folder_path: st
         str: Path to the generated PII detection JSON file
     """
     
-    system_prompt = """You are a data sensitivity auditor.
+    system_prompt = """You are a meticulous data sensitivity auditor.
 
-Your goal is to identify and locate sensitive or personally identifiable information (PII)
-within the provided text. Do NOT redact or rewrite anything. Only return the index ranges
-and categories of detected sensitive elements.
+Your mission is to exhaustively identify every occurrence of sensitive or personally identifiable information (PII) in the provided text. Do NOT redact or rewrite anything. Only return the index ranges and categories of detected sensitive elements.
 
-Follow these steps:
-1. Scan the input text carefully.
-2. Identify spans (start_index, end_index) that contain sensitive information.
-3. Categorize each as one of: NAME, EMAIL, PHONE, SSN, ADDRESS, DATE, FINANCIAL, SECURITY_KEY, LOCATION, OTHER.
-4. Make sure all the params are there.
-5. Return a valid JSON array with objects in this exact format. This is just an example, do NOT copy it:
+Detection checklist (apply to every token and phrase):
+1. Review the entire text multiple times; do not stop after the first finding.
+2. Capture every full or partial PERSON name (first, middle, last, initials with surnames, honorifics + names, etc.).
+3. Identify any AGE mentions, including phrases like "45 years old".
+4. Flag all contact details: emails, phone numbers, cell numbers, and formatted/unformatted strings that represent them.
+5. Detect numeric identifiers such as SSN, account numbers, security keys, license numbers.
+6. Mark any ADDRESS or LOCATION (street, city, state, ZIP, country, GPS coordinates).
+7. Include FINANCIAL data (bank info, amounts tied to people, credit cards).
+8. If unsure about the category but the text is sensitive, label it as OTHER.
+9. Never skip ambiguous matches—include them with the best-fitting category.
+10. Confirm every returned span has start/end indices that match the exact substring.
 
+Return a JSON array of objects:
 [
   {"category": "CATEGORY_TYPE", "start": START_INDEX, "end": END_INDEX, "text": "DETECTED_TEXT"}
 ]
 
-Example format (DO NOT copy these exact values):
-- For a name at the beginning: {"category": "NAME", "start": 0, "end": 12, "text": "actual_name_found"}
-- For an email elsewhere: {"category": "EMAIL", "start": 45, "end": 68, "text": "actual_email@found.com"}
+Important rules:
+- Use 0-based indexing on the provided text.
+- Start index is inclusive; end index is exclusive.
+- `text` must match exactly the substring between start and end.
+- Do not include example data; analyze only the supplied text.
+- Return [] only if absolutely no PII or sensitive info exists.
+- Output valid JSON only with no extra commentary.
 
+Be thorough: missing even one obvious piece of PII (especially names) is unacceptable.
 Important rules:
 - Use 0-based indexing for the actual text positions
 - Include only the exact text that was detected in the provided input
@@ -92,20 +101,18 @@ CRITICAL: The examples above are just formatting guides. Analyze the actual text
             return []
 
     def calculate_pii_bbox(start_char, end_char, text_length, original_bbox):
-        """Calculate proportional bbox for detected PII substring"""
-        if text_length == 0:
-            return original_bbox
+        """
+        Use the original OCR bounding box for PII redaction.
         
-        start_ratio = start_char / text_length
-        end_ratio = end_char / text_length
+        Calculating precise character-level coordinates is unreliable due to:
+        - Variable character spacing and font metrics
+        - OCR positioning inaccuracies
+        - Different character widths
         
-        x1, y1, x2, y2 = original_bbox
-        bbox_width = x2 - x1
-        
-        pii_x1 = x1 + (start_ratio * bbox_width)
-        pii_x2 = x1 + (end_ratio * bbox_width)
-        
-        return [int(pii_x1), int(y1), int(pii_x2), int(y2)]
+        For security, it's better to redact the entire text block containing PII
+        rather than risk missing sensitive data with imprecise calculations.
+        """
+        return original_bbox
 
     # Extract texts from the JSON file
     texts = extract_texts_from_ocr_json(json_file_path)

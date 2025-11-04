@@ -130,21 +130,18 @@ class RedactorConsumer:
             
             logger.info(f"Processing PDF redaction for {len(all_pii_detections)} detection files")
             
-            # Step 1: Convert PDF to high-quality PNG files (one per page)
+            # Step 1: Convert PDF to PNG files with same resolution as OCR processing
             pdf_document = fitz.open(original_file_path)
             png_files = []
             
             for page_num in range(len(pdf_document)):
                 page = pdf_document.load_page(page_num)
                 
-                # Create high-quality transformation matrix for 300 DPI
-                zoom_factor = 300 / 72  # 4.17x zoom for 300 DPI vs standard 72 DPI
-                mat = fitz.Matrix(zoom_factor, zoom_factor)
-                
-                # Render page with high quality settings
+                # Use standard resolution to match OCR processing
+                # The OCR consumer likely used default resolution (72 DPI)
+                # We need to match that to ensure coordinates align
                 pix = page.get_pixmap(
-                    matrix=mat,
-                    alpha=False,  # No transparency for smaller file size and better quality
+                    alpha=False,  # No transparency for better quality
                     colorspace=fitz.csRGB  # Ensure RGB color space
                 )
                 
@@ -154,7 +151,8 @@ class RedactorConsumer:
                 
                 pix.save(str(png_path))
                 png_files.append(str(png_path))
-                logger.info(f"Created high-quality PNG (300 DPI) for page {page_num}: {png_path}")
+                logger.info(f"Created PNG (OCR-compatible resolution) for page {page_num}: {png_path}")
+                logger.info(f"PNG dimensions: {pix.width} x {pix.height}")
             
             pdf_document.close()
             

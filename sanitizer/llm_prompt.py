@@ -186,7 +186,13 @@ CRITICAL: The examples above are just formatting guides. Analyze the actual text
     job_id = job_id  # Extract job ID from filename
     # Get the file name (last part of the path)
     filename = os.path.basename(json_file_path)
-    output_filename = f"pii_detections_{filename}"
+    
+    # Only add pii_detections_ prefix if not already present
+    if filename.startswith('pii_detections_'):
+        output_filename = filename  # Already has the prefix
+    else:
+        output_filename = f"pii_detections_{filename}"
+    
     output_filepath = output_dir / output_filename
 
     # Create summary information

@@ -65,18 +65,21 @@ class LLMEngineConsumer:
             message = json.loads(body)
             job_id = message.get('job_id')
             output_folder_str = message.get('output_folder')
-            original_file_path = message.get('original_file_path')  # ✅ Get from message
+            original_file_path = message.get('original_file_path')  #  Get from message
 
             # Convert output_folder to Path object
             output_folder = Path(output_folder_str) if output_folder_str else None
 
-            # Find all files that end with _res.json and count them
-            res_files = list(output_folder.rglob("*_res.json")) if output_folder and output_folder.exists() else []
+            # Find all OCR result files (exclude PII detection files that also end with _res.json)
+            # OCR files: job_id_0_res.json, job_id_1_res.json, etc.
+            # PII files: pii_detections_job_id_0_res.json (should NOT be processed again)
+            all_res_files = list(output_folder.rglob("*_res.json")) if output_folder and output_folder.exists() else []
+            res_files = [f for f in all_res_files if not f.name.startswith('pii_detections_')]
             res_count = len(res_files)
-            logger.info(f"Found {res_count} file(s) ending with _res.json in {output_folder}")
+            logger.info(f"Found {res_count} OCR file(s) (excluding already-processed PII files)")
             logger.info(f"Starting PII detection for job: {job_id}")
             logger.info(f"Output folder: {output_folder}")
-            logger.info(f"Original file path: {original_file_path}")  # ✅ Log the passed path
+            logger.info(f"Original file path: {original_file_path}")  #  Log the passed path
             
             # Process all OCR result files first
             pii_detection_results = []
@@ -116,13 +119,13 @@ class LLMEngineConsumer:
                 
                 # Use the original file path passed from OCR consumer
                 if original_file_path and Path(original_file_path).exists():
-                    logger.info(f"✅ Using original file path from OCR message: {original_file_path}")
+                    logger.info(f" Using original file path from OCR message: {original_file_path}")
                     
                     redactor_message = {
                         'job_id': job_id,
                         'pii_detections_path': pii_detection_results[0],  # Use first detection file as primary
                         'all_pii_detections': pii_detection_results,  # Include all detection files
-                        'original_file_path': original_file_path,  # ✅ Use passed path
+                        'original_file_path': original_file_path,  #  Use passed path
                         'output_folder': str(output_folder)
                     }
                     
@@ -142,13 +145,13 @@ class LLMEngineConsumer:
                         )
                     )
                     
-                    logger.info(f"✅ Successfully sent message to Redactor queue for job: {job_id}")
+                    logger.info(f" Successfully sent message to Redactor queue for job: {job_id}")
                     
                 elif original_file_path:
-                    logger.error(f"❌ Original file path from OCR message doesn't exist: {original_file_path}")
+                    logger.error(f" Original file path from OCR message doesn't exist: {original_file_path}")
                     
-                    # 🔄 Fallback: Try to find file in uploads folder (legacy behavior)
-                    logger.info("🔄 Falling back to file discovery in uploads folder...")
+                    #  Fallback: Try to find file in uploads folder (legacy behavior)
+                    logger.info(" Falling back to file discovery in uploads folder...")
                     project_root = Path(__file__).parent.parent
                     uploads_dir = project_root / "uploads"
                     
@@ -185,17 +188,17 @@ class LLMEngineConsumer:
                             )
                         )
                         
-                        logger.info(f"✅ Successfully sent message to Redactor queue using fallback file: {fallback_file}")
+                        logger.info(f" Successfully sent message to Redactor queue using fallback file: {fallback_file}")
                     else:
-                        logger.error(f"❌ No fallback file found in uploads folder for job: {job_id}")
+                        logger.error(f" No fallback file found in uploads folder for job: {job_id}")
                         
                 else:
-                    logger.error(f"❌ No original file path provided in OCR message for job: {job_id}")
+                    logger.error(f" No original file path provided in OCR message for job: {job_id}")
             else:
                 if not all_processing_successful:
-                    logger.error(f"❌ PII detection failed for some files in job: {job_id}")
+                    logger.error(f" PII detection failed for some files in job: {job_id}")
                 else:
-                    logger.error(f"❌ No PII detection results found for job: {job_id}")
+                    logger.error(f" No PII detection results found for job: {job_id}")
             
             # Acknowledge the message
             ch.basic_ack(delivery_tag=method.delivery_tag)

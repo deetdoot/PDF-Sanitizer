@@ -3,6 +3,8 @@ import json
 import logging
 import sys
 from pathlib import Path
+import fitz  # PyMuPDF
+from PIL import Image
 
 # Setup project imports
 def setup_project_imports():
@@ -122,8 +124,7 @@ class RedactorConsumer:
     def process_pdf_redaction(self, job_id, original_file_path, all_pii_detections, output_folder):
         """Process multi-page PDF redaction"""
         try:
-            import fitz  # PyMuPDF
-            from PIL import Image
+
             
             original_file = Path(original_file_path)
             output_folder_path = Path(output_folder)

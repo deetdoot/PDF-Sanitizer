@@ -2,12 +2,12 @@
 # Simple bash script to start all consumers for the document processing pipeline
 
 echo "============================================================"
-echo "🔄 Starting Document Processing Pipeline"
+echo " Starting Document Processing Pipeline"
 echo "============================================================"
 
 # Check if we're in the right directory
 if [ ! -f "ingest.py" ]; then
-    echo "❌ Error: Please run this script from the project root directory"
+    echo " Error: Please run this script from the project root directory"
     echo "   Expected to find 'ingest.py' in current directory"
     exit 1
 fi
@@ -32,14 +32,14 @@ start_consumer() {
     
     # Check if the process is still running
     if kill -0 "$pid" 2>/dev/null; then
-        echo "✅ $name started successfully (PID: $pid)"
+        echo " $name started successfully (PID: $pid)"
         echo "$pid" >> .pipeline_pids
     else
-        echo "❌ Failed to start $name"
+        echo " Failed to start $name"
         return 1
     fi
     
-    echo "⏳ Waiting 3 seconds before starting next consumer..."
+    echo " Waiting 3 seconds before starting next consumer..."
     sleep 3
     echo
 }
@@ -61,18 +61,18 @@ echo
 
 # Show running processes
 if [ -s .pipeline_pids ]; then
-    echo "📊 Active Consumers:"
+    echo " Active Consumers:"
     while read -r pid; do
         if kill -0 "$pid" 2>/dev/null; then
             echo "   • Consumer running (PID: $pid)"
         fi
     done < .pipeline_pids
 else
-    echo "⚠️  No consumers are running"
+    echo "  No consumers are running"
 fi
 
 echo
-echo "💡 Tips:"
+echo " Tips:"
 echo "   • Start the API server with: python ingest.py"
 echo "   • View consumer logs in their respective terminals"
 echo "   • Stop all consumers with: ./stop_pipeline.sh"

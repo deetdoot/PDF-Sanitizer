@@ -8,6 +8,16 @@ from upload_module.upload_pdf import upload_file
 import pika, json
 import uvicorn
 import uuid
+import os
+from dotenv import load_dotenv
+import logging
+
+load_dotenv()  # load variables from .env into os.environ
+
+# Prefer BACKEND_PORT, fall back to PORT, default to 8000
+PORT = int(os.environ.get("BACKEND_PORT") or os.environ.get("PORT") or 8000)
+
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -79,6 +89,8 @@ async def upload_file_endpoint(file: UploadFile = File(...)):
     return await upload_file(file, job_id)
 
 
+
+
 if __name__ == "__main__":
     
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

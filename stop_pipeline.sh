@@ -5,8 +5,8 @@ echo "🛑 Stopping Document Processing Pipeline..."
 
 # Check if PID file exists
 if [ ! -f ".pipeline_pids" ]; then
-    echo "❌ No PID file found. Consumers may not be running or were started manually."
-    echo "💡 You can manually stop processes using: ps aux | grep python | grep consumer"
+    echo " No PID file found. Consumers may not be running or were started manually."
+    echo " You can manually stop processes using: ps aux | grep python | grep consumer"
     exit 1
 fi
 
@@ -27,7 +27,7 @@ while read -r pid; do
                 kill -9 "$pid"
             fi
             
-            echo "   ✅ Consumer stopped (PID: $pid)"
+            echo "    Consumer stopped (PID: $pid)"
         else
             echo "   Consumer (PID: $pid) was already stopped"
         fi
@@ -38,4 +38,4 @@ done < .pipeline_pids
 rm -f .pipeline_pids
 
 echo "🏁 All consumers stopped"
-echo "💡 You may also want to stop the API server if it's running"
+echo " You may also want to stop the API server if it's running"

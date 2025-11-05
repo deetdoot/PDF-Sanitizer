@@ -2,9 +2,9 @@ import pika
 import json
 import logging
 import time
+import os
 from typing import Dict, Any
 from pathlib import Path
-from paddleocr import PPStructureV3
 from paddleocr import PaddleOCR
 
 
@@ -13,8 +13,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class OCRConsumer:
-    def __init__(self, rabbitmq_host='localhost'):
-        self.rabbitmq_host = rabbitmq_host
+    def __init__(self, rabbitmq_host=None):
+        self.rabbitmq_host = rabbitmq_host or os.environ.get('RABBITMQ_HOST', 'localhost')
         self.connection = None
         self.channel = None
         
@@ -45,8 +45,6 @@ class OCRConsumer:
             message = json.loads(body)
             job_id = message.get('job_id')
             file_path = message.get('file_path')
-            # Convert relative path to absolute path from project root
-            print(file_path)
             # Resolve file_path to absolute path relative to project root if necessary
             file_path = Path(file_path)
             if not file_path.is_absolute():

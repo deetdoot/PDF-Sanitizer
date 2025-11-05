@@ -2,6 +2,7 @@ import pika
 import json
 import logging
 import sys
+import os
 from pathlib import Path
 import fitz  # PyMuPDF
 from PIL import Image
@@ -34,8 +35,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class RedactorConsumer:
-    def __init__(self, rabbitmq_host='localhost'):
-        self.rabbitmq_host = rabbitmq_host
+    def __init__(self, rabbitmq_host=None):
+        self.rabbitmq_host = rabbitmq_host or os.environ.get('RABBITMQ_HOST', 'localhost')
         self.connection = None
         self.channel = None
         

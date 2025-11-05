@@ -2,14 +2,15 @@ import pika
 import json
 import logging
 import time
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class FileUploadConsumer:
-    def __init__(self, rabbitmq_host='localhost'):
-        self.rabbitmq_host = rabbitmq_host
+    def __init__(self, rabbitmq_host=None):
+        self.rabbitmq_host = rabbitmq_host or os.environ.get('RABBITMQ_HOST', 'localhost')
         self.connection = None
         self.channel = None
         

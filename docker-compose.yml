@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: pdf-pipeline-rabbitmq
+    ports:
+      - "5672:5672"      # AMQP port
+      - "15672:15672"    # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping && rabbitmq-diagnostics -q check_port_connectivity
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - pipeline-network
+
+  # FastAPI Backend
+  backend:
+    build: .
+    container_name: pdf-pipeline-backend
+    ports:
+      - "${BACKEND_PORT:-5005}:5005"
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - pipeline-network
+    command: python ingest.py
+    restart: unless-stopped
+
+  # Upload Consumer
+  upload-consumer:
+    build: .
+    container_name: pdf-pipeline-upload-consumer
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - pipeline-network
+    command: python consumers/upload_consumer.py
+    restart: unless-stopped
+
+  # OCR Consumer
+  ocr-consumer:
+    build: .
+    container_name: pdf-pipeline-ocr-consumer
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - pipeline-network
+    command: python consumers/ocr_consumer.py
+    restart: unless-stopped
+
+  # LLM Engine Consumer
+  llm-consumer:
+    build: .
+    container_name: pdf-pipeline-llm-consumer
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - pipeline-network
+    command: python consumers/llm_engine_consumer.py
+    restart: unless-stopped
+
+  # Redactor Consumer
+  redactor-consumer:
+    build: .
+    container_name: pdf-pipeline-redactor-consumer
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - pipeline-network
+    command: python consumers/redactor_consumer.py
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  pipeline-network:
+    driver: bridge

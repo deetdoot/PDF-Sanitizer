@@ -3,7 +3,7 @@ import requests
 import json
 from pathlib import Path
 
-def detect_pii_from_ocr(job_id: str, json_file_path: str, output_folder_path: str, model: str = "llama3.2"):
+def detect_pii_from_ocr(job_id: str, json_file_path: str, output_folder_path: str, model: str = "llama3.2", original_file_path: str = None):
     """
     Main function to detect PII from OCR JSON file using structured outputs
     
@@ -230,7 +230,8 @@ Categories: PERSON, AGE, EMAIL, PHONE, SSN, ACCOUNT_NUMBER, ADDRESS, LOCATION, F
         ],
         "format": pii_schema,
         "temperature": 0,
-        "stream": False
+        "stream": False,
+        "images": [original_file_path]
     }
 
     try:

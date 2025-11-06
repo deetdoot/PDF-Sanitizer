@@ -229,8 +229,8 @@ class RedactorConsumer:
                             save_all=True,
                             append_images=images[1:] if len(images) > 1 else [],
                             format='PDF',
-                            resolution=300.0,  # Match the 300 DPI from PNG conversion
-                            quality=95,        # High quality for any JPEG compression
+                            resolution=320.0,  # Match the 300 DPI from PNG conversion
+                            quality=100,        # High quality for any JPEG compression
                             optimize=False     # Don't optimize to maintain quality
                         )
                         

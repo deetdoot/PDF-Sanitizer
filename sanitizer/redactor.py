@@ -25,7 +25,8 @@ def redact_png_image(original_file_path, pii_detections, output_path=None):
         
         # Draw black rectangles over each PII detection
         for detection in pii_detections:
-            pii_bbox = detection.get('pii_bbox')
+            # Support both 'bbox' (new format) and 'pii_bbox' (legacy format)
+            pii_bbox = detection.get('bbox') or detection.get('pii_bbox')
             if pii_bbox:
                 # pii_bbox format: [x1, y1, x2, y2]
                 x1, y1, x2, y2 = pii_bbox
